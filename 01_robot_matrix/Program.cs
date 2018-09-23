@@ -37,46 +37,85 @@ namespace _01_robot_matrix
                     Console.Write($"{arr[i, j]} ");
                 Console.WriteLine();
             }
-            Console.WriteLine("\n");
         }
 
         static void Main(string[] args)
         {
             char[,] matrix = new char[20, 50];
             Fill(matrix);
-            Print(matrix);
+            //Print(matrix);
             Console.WriteLine($"Enter first position of (R)obot:");
             int x, y;
+            int left = 0, right = 0, error = 0, way = 0;
             Console.Write($"x < {matrix.GetLength(0)}: ");
             string tmp = Console.ReadLine();
-            if (int.TryParse(tmp, out x)) ;
-            else
-                x = 0;
+            if (!int.TryParse(tmp, out x)) 
+               x = 0;
             Console.Write($"y < {matrix.GetLength(1)}: ");
             tmp = Console.ReadLine();
-            if (int.TryParse(tmp, out y)) ;
-            else
+            if (!int.TryParse(tmp, out y)) 
                 y = 0;
+            matrix[x, y] = 'r';
+            string command = "5 L 2 R 3 L 7 L 1";
+            string[] moves;
+            moves = command.Split(" .!:;".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+            Console.Write($"\nSize of matrix: {matrix.GetLength(0)} x {matrix.GetLength(1)}. First position for robot [{x}, {y}]. Commands for robot:\t");
+            foreach (string d in moves)
+            {
+                Console.Write($"{d} ");
+            }
+            Console.WriteLine();
+            int count = 0;
+            int go;
+            int xc = 1, yc = 1;
+            bool turn = true;
+            while (count < moves.Length)
+            {
+                if (int.TryParse(moves[count], out go))
+                {
+                    way += go;
+                    if (turn)
+                    {
+                        if (y + go < matrix.GetLength(1))
+                            for (int i = 0; i < go; i++)
+                                matrix[x, y += yc] = 'O';
+                        else
+                            ++error;
+                    }
+                    else
+                    {
+                        if (x + go < matrix.GetLength(0))
+                            for (int i = 0; i < go; i++)
+                                matrix[x += xc, y] = 'O';
+                        else
+                            ++error;
+                    }
+                }
+                else
+                {
+                    if (moves[count] == "R")
+                    {
+                        yc = -yc;
+                        ++right;
+                        turn = true;
+                    }
+                    else
+                         if (moves[count] == "L")
+                    {
+                        xc = -xc;
+                        ++left;
+                        turn = false;
+                    }
+                    else
+                        ++error;
+                }
+                ++count;
+                //SetRobot(matrix, x, y);
+                //Print(matrix);
+            }
             matrix[x, y] = 'R';
             Print(matrix);
-            string command = "7 R 20 L 2";
-            string[] digits;
-            digits = command.Split(" .!:;".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-            foreach (string d in digits)
-            {
-                Console.WriteLine(d);
-            }
-            for (int i = 0; i < Convert.ToInt32(digits[0]); i++)
-            {
-                matrix[x + i, y] = 'O';
-            }
-            x += Convert.ToInt32(digits[0]);
-            for (int i = 0; i < Convert.ToInt32(digits[2]); i++)
-                matrix[x, y + i] = 'O';
-            y += Convert.ToInt32(digits[2]);
-            matrix[x, y] = 'R';
-            Print(matrix);
-            Console.WriteLine("\n");
+            Console.WriteLine($"\nQ-ty moves:\t{way}\nLeft-turn:\t{left}\nRight-turn:\t{right}\nError(s):\t{error}\n");
         }
     }
 }
