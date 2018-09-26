@@ -43,20 +43,23 @@ namespace _01_robot_matrix
         {
             char[,] matrix = new char[20, 50];
             Fill(matrix);
-            //Print(matrix);
+
             Console.WriteLine($"Enter first position of (R)obot:");
             int x, y;
             int left = 0, right = 0, error = 0, way = 0;
+
             Console.Write($"x < {matrix.GetLength(0)}: ");
             string tmp = Console.ReadLine();
             if (!int.TryParse(tmp, out x)) 
                x = 0;
+
             Console.Write($"y < {matrix.GetLength(1)}: ");
             tmp = Console.ReadLine();
             if (!int.TryParse(tmp, out y)) 
                 y = 0;
+
             matrix[x, y] = 'r';
-            string command = "5 L 2 R 3 L 7 L 1";
+            string command = "5 R 4 L 3 R 2 L 10 L 3 R 2";
             string[] moves;
             moves = command.Split(" .!:;".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             Console.Write($"\nSize of matrix: {matrix.GetLength(0)} x {matrix.GetLength(1)}. First position for robot [{x}, {y}]. Commands for robot:\t");
@@ -66,12 +69,11 @@ namespace _01_robot_matrix
             }
             Console.WriteLine();
             int count = 0;
-            int go;
             int xc = 1, yc = 1;
             bool turn = true;
             while (count < moves.Length)
             {
-                if (int.TryParse(moves[count], out go))
+                if (int.TryParse(moves[count], out int go))
                 {
                     way += go;
                     if (turn)
@@ -81,6 +83,7 @@ namespace _01_robot_matrix
                                 matrix[x, y += yc] = 'O';
                         else
                             ++error;
+                        turn = !turn;
                     }
                     else
                     {
@@ -89,20 +92,87 @@ namespace _01_robot_matrix
                                 matrix[x += xc, y] = 'O';
                         else
                             ++error;
+                        turn = !turn;
                     }
                 }
                 else
                 {
-                    if (moves[count] == "R")
+                    if (!turn)
                     {
-                        yc = -yc;
+                        if (moves[count] == "R")
+                        {
+                            xc = 1;
+                            ++right;
+                        }
+
+                        if (moves[count] == "L")
+                        {
+                            xc = -1;
+                            ++left;
+                        }
+                    }
+                    else
+                    if (turn)
+                    {
+                        if (moves[count] == "R")
+                        {
+                            yc = -1;
+                            ++right;
+                        }
+
+                        if (moves[count] == "L")
+                        {
+                            yc = 1;
+                            ++left;
+                        }
+                    }
+                    else
+                       ++error;
+                }
+                ++count;
+            }
+            matrix[x, y] = 'R';
+            Print(matrix);
+            Console.WriteLine($"\nQ-ty moves:\t{way}\nLeft-turn:\t{left}\nRight-turn:\t{right}\nError(s):\t{error}\n");
+        }
+    }
+}
+
+/*
+ while (count<moves.Length)
+            {
+                if (int.TryParse(moves[count], out int go))
+                {
+                    way += go;
+                    if (turn)
+                    {
+                        if (y + go<matrix.GetLength(1))
+                            for (int i = 0; i<go; i++)
+                                matrix[x += xc, y += yc] = 'O';
+                        else
+                            ++error;
+                    }
+                    else
+                    {
+                        if (x + go<matrix.GetLength(0))
+                            for (int i = 0; i<go; i++)
+                                matrix[x += xc, y] = 'O';
+                        else
+                            ++error;
+                    }
+                }
+                else
+                {
+                    if (moves[count] == "L")
+                    {
+                        //yc = -yc;
                         ++right;
                         turn = true;
                     }
                     else
-                         if (moves[count] == "L")
+                         if (moves[count] == "R")
                     {
-                        xc = -xc;
+                        //xc = -xc;
                         ++left;
                         turn = false;
                     }
@@ -113,9 +183,4 @@ namespace _01_robot_matrix
                 //SetRobot(matrix, x, y);
                 //Print(matrix);
             }
-            matrix[x, y] = 'R';
-            Print(matrix);
-            Console.WriteLine($"\nQ-ty moves:\t{way}\nLeft-turn:\t{left}\nRight-turn:\t{right}\nError(s):\t{error}\n");
-        }
-    }
-}
+*/
