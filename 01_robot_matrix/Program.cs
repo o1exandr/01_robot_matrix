@@ -59,80 +59,81 @@ namespace _01_robot_matrix
                 y = 0;
 
             matrix[x, y] = 'r';
-            string command = "5 R 4 L 3 R 2 L 10 L 3 R 2";
+            string command = "5 L 4 R 3 R 2 L 10 R 3 L 2 R 1";
+            //string command = "5 L 4 L 3 L 2 L 10 L 3 L 2 R 1";
             string[] moves;
             moves = command.Split(" .!:;".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             Console.Write($"\nSize of matrix: {matrix.GetLength(0)} x {matrix.GetLength(1)}. First position for robot [{x}, {y}]. Commands for robot:\t");
+            
             foreach (string d in moves)
             {
                 Console.Write($"{d} ");
             }
-            Console.WriteLine();
+            Console.WriteLine("\nr (start point) --> R (finish point)");
             int count = 0;
             int xc = 1, yc = 1;
-            bool turn = true;
+            bool axisY = true;
+      
             while (count < moves.Length)
             {
                 if (int.TryParse(moves[count], out int go))
                 {
-                    way += go;
-                    if (turn)
+                   
+                    if (axisY)
                     {
                         if (y + go < matrix.GetLength(1))
+                        {
                             for (int i = 0; i < go; i++)
                                 matrix[x, y += yc] = 'O';
+                            way += go;
+                        }
                         else
                             ++error;
-                        turn = !turn;
+                        axisY = !axisY;
                     }
                     else
                     {
                         if (x + go < matrix.GetLength(0))
+                        {
                             for (int i = 0; i < go; i++)
                                 matrix[x += xc, y] = 'O';
+                            way += go;
+                        }
                         else
                             ++error;
-                        turn = !turn;
+                        axisY = !axisY;
                     }
                 }
                 else
                 {
-                    if (!turn)
                     {
                         if (moves[count] == "R")
                         {
-                            xc = 1;
+                          
+                                xc = 1;
+                                yc = -yc;
+                           
                             ++right;
                         }
-
+                       
                         if (moves[count] == "L")
                         {
-                            xc = -1;
+                          
+                                xc = -xc;
+                                yc = 1;
+                         
+                           
                             ++left;
                         }
+                   
+                        //всі інші команди не R чи L простто ігноритимуться
                     }
-                    else
-                    if (turn)
-                    {
-                        if (moves[count] == "R")
-                        {
-                            yc = -1;
-                            ++right;
-                        }
-
-                        if (moves[count] == "L")
-                        {
-                            yc = 1;
-                            ++left;
-                        }
-                    }
-                    else
-                       ++error;
                 }
                 ++count;
             }
             matrix[x, y] = 'R';
             Print(matrix);
+            
             Console.WriteLine($"\nQ-ty moves:\t{way}\nLeft-turn:\t{left}\nRight-turn:\t{right}\nError(s):\t{error}\n");
         }
     }
@@ -184,3 +185,37 @@ namespace _01_robot_matrix
                 //Print(matrix);
             }
 */
+
+/*
+ *     if (!axisY)
+                {
+                    if (moves[count] == "R")
+                    {
+                        xc = 1;
+                        ++right;
+                    }
+
+                    if (moves[count] == "L")
+                    {
+                        xc = -1;
+                        ++left;
+                    }
+                }
+                else
+                if (axisY)
+                {
+                    if (moves[count] == "R")
+                    {
+                        yc = 1;
+                        ++right;
+                    }
+
+                    if (moves[count] == "L")
+                    {
+                        yc = -1;
+                        ++left;
+                    }
+                }
+                else
+                   ++error;
+ */
