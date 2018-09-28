@@ -18,8 +18,18 @@ using System.Threading.Tasks;
 
 namespace _01_robot_matrix
 {
-    class Program
+  
+
+    class Program    
     {
+        // додавання елементу в масив помилок
+        static void AddErr(ref string[] arr, string element)
+        {
+            Array.Resize(ref arr, arr.Length + 1);
+            arr[arr.Length - 1] = element;
+        }
+        
+        // заповнення масиву крапочками для візуального відображення поля
         static void Fill(char[,] arr)
         {
             for (int i = 0; i < arr.GetLength(0); i++)
@@ -29,6 +39,7 @@ namespace _01_robot_matrix
                 }
         }
 
+        // вивід матриці
         static void Print(char[,] arr)
         {
             for (int i = 0; i < arr.GetLength(0); i++)
@@ -41,27 +52,30 @@ namespace _01_robot_matrix
 
         static void Main(string[] args)
         {
-            char[,] matrix = new char[20, 50];
+            string [] err = new string [0]; // сюди збергіатимемо всі меседжи з помилками
+            char[,] matrix = new char[20, 50]; // матриця по якій рухається робот
             Fill(matrix);
 
-            Console.WriteLine($"Enter first position of (R)obot:");
-            int x, y;
-            int left = 0, right = 0, error = 0, way = 0;
+            Console.WriteLine($"Enter first position of (R)obot:"); 
+            int x, y; // сюди зберігатимемо кординати кожного ходу робота
+            int left = 0, right = 0, error = 0, way = 0; // змінні для моніторингу статистики
 
-            Console.Write($"x < {matrix.GetLength(0)}: ");
+            Console.Write($"x < {matrix.GetLength(0)}: "); // питаємо початкові позиції в користувача
             string tmp = Console.ReadLine();
-            if (!int.TryParse(tmp, out x)) 
+            if (!int.TryParse(tmp, out x)) // якщо щось некоретне приходить від користувача, по замовчуванню 0
                x = 0;
 
-            Console.Write($"y < {matrix.GetLength(1)}: ");
+            Console.Write($"y < {matrix.GetLength(1)}: "); // кордината н аналігочіно іксу
             tmp = Console.ReadLine();
             if (!int.TryParse(tmp, out y)) 
                 y = 0;
 
-            matrix[x, y] = 'r';
+            matrix[x, y] = 'r'; // малюємо стартову точку робота
+            // команда для робота
             string command = "5 L 4 R 3 R 2 L 10 R 3 L 2 R 1";
-            //string command = "5 L 4 L 3 L 2 L 10 L 3 L 2 R 1";
-            string[] moves;
+            //string command = "5 L 4 L 3 L 2 R 5 R 4 R 3 R 2";
+            //string command = "5 L 4 R 3 L 2 R 10 L 3 R 2 L 1";
+            string[] moves; // масив куди спарсимо команди
             moves = command.Split(" .!:;".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             Console.Write($"\nSize of matrix: {matrix.GetLength(0)} x {matrix.GetLength(1)}. First position for robot [{x}, {y}]. Commands for robot:\t");
             
@@ -70,152 +84,87 @@ namespace _01_robot_matrix
                 Console.Write($"{d} ");
             }
             Console.WriteLine("\nr (start point) --> R (finish point)");
-            int count = 0;
-            int xc = 1, yc = 1;
-            bool axisY = true;
-      
+            int count = 0; //кількість ходів
+            int xc = 1, yc = 1; // крок на який переміщається робот
+            bool axisY = true; // прапорець на якій вісі ми знаходимось, стартуємо з 'y' і далі по руху робота визначаємо ліво право
+            int l = 0, r = 0; // прапорці для визначення чи робот повертає кілька разів в одну сторону (наприклда тричі підряд вліво)
             while (count < moves.Length)
             {
-                if (int.TryParse(moves[count], out int go))
+                if (int.TryParse(moves[count], out int go)) //якщо елемент парситься в число, то рухаємо на таку кількість ходів вперед залежно від параметрів
                 {
                    
                     if (axisY)
                     {
-                        if (y + go < matrix.GetLength(1))
+                        if (y + go * yc < matrix.GetLength(1) && y + go * yc > 0)
                         {
                             for (int i = 0; i < go; i++)
                                 matrix[x, y += yc] = 'O';
                             way += go;
                         }
                         else
+                        {
+                            AddErr(ref err, $"Move '{moves[count - 1]} {moves[count]}' is impossible");
                             ++error;
+                        }
                         axisY = !axisY;
                     }
                     else
                     {
-                        if (x + go < matrix.GetLength(0))
+                        if (x + go * xc < matrix.GetLength(0) && x + go * xc > 0)
                         {
                             for (int i = 0; i < go; i++)
                                 matrix[x += xc, y] = 'O';
                             way += go;
                         }
                         else
+                        {
+                            AddErr(ref err, $"Move '{moves[count - 1]} {moves[count]}' is impossible");
                             ++error;
+                        }
                         axisY = !axisY;
                     }
                 }
                 else
-                {
+                {// якщо не парситься, то зчитуємо параметри повороту
                     {
                         if (moves[count] == "R")
                         {
-                          
-                                xc = 1;
+                            ++r;
+                            l = 0;
+                            if (r % 2 == 0) 
                                 yc = -yc;
-                           
+                            else
+                                xc = -xc;
                             ++right;
                         }
                        
                         if (moves[count] == "L")
                         {
-                          
+                            ++l;
+                            r = 0;
+                            if (l % 2 == 1)
                                 xc = -xc;
-                                yc = 1;
-                         
-                           
+                            else
+                                yc = -yc;
                             ++left;
                         }
                    
-                        //всі інші команди не R чи L простто ігноритимуться
+                        //всі інші команди не R чи L просто ігноритимуться
                     }
                 }
                 ++count;
             }
-            matrix[x, y] = 'R';
-            Print(matrix);
-            
+            matrix[x, y] = 'R'; //фінальна точка робота
+            Print(matrix); // виводимо матрицю з ходами
+            //статистика
             Console.WriteLine($"\nQ-ty moves:\t{way}\nLeft-turn:\t{left}\nRight-turn:\t{right}\nError(s):\t{error}\n");
+            foreach (string e in err)
+            {
+                Console.WriteLine($"{e} ");
+            }
+
+            Console.ReadKey();
         }
     }
 }
 
-/*
- while (count<moves.Length)
-            {
-                if (int.TryParse(moves[count], out int go))
-                {
-                    way += go;
-                    if (turn)
-                    {
-                        if (y + go<matrix.GetLength(1))
-                            for (int i = 0; i<go; i++)
-                                matrix[x += xc, y += yc] = 'O';
-                        else
-                            ++error;
-                    }
-                    else
-                    {
-                        if (x + go<matrix.GetLength(0))
-                            for (int i = 0; i<go; i++)
-                                matrix[x += xc, y] = 'O';
-                        else
-                            ++error;
-                    }
-                }
-                else
-                {
-                    if (moves[count] == "L")
-                    {
-                        //yc = -yc;
-                        ++right;
-                        turn = true;
-                    }
-                    else
-                         if (moves[count] == "R")
-                    {
-                        //xc = -xc;
-                        ++left;
-                        turn = false;
-                    }
-                    else
-                        ++error;
-                }
-                ++count;
-                //SetRobot(matrix, x, y);
-                //Print(matrix);
-            }
-*/
-
-/*
- *     if (!axisY)
-                {
-                    if (moves[count] == "R")
-                    {
-                        xc = 1;
-                        ++right;
-                    }
-
-                    if (moves[count] == "L")
-                    {
-                        xc = -1;
-                        ++left;
-                    }
-                }
-                else
-                if (axisY)
-                {
-                    if (moves[count] == "R")
-                    {
-                        yc = 1;
-                        ++right;
-                    }
-
-                    if (moves[count] == "L")
-                    {
-                        yc = -1;
-                        ++left;
-                    }
-                }
-                else
-                   ++error;
- */
